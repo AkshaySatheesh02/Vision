@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Detection and Reading</title>
+    <style>
+        #loading-indicator {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Text Detection and Reading</h1>
+
+<form id="upload-form">
+    <label for="image-input">Upload an Image:</label>
+    <input type="file" id="image-input" name="image" accept="image/*">
+    <br>
+    <button type="button" onclick="uploadImage()">Submit</button>
+</form>
+
+<div id="loading-indicator">Loading...</div>
+
+<div id="result-container">
+    <h3>Result:</h3>
+    <p id="recognized-text"></p>
+</div>
+
+<script>
+function uploadImage() {
+    var formData = new FormData();
+    var fileInput = document.getElementById('image-input');
+    formData.append('image', fileInput.files[0]);
+
+    // Show loading indicator
+    document.getElementById('loading-indicator').style.display = 'block';
+
+    fetch('http://127.0.0.1:5000/detect_text', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Hide loading indicator
+        document.getElementById('loading-indicator').style.display = 'none';
+
+        // Display the recognized text
+        document.getElementById('recognized-text').innerText = data.recognized_text;
+    })
+    .catch(error => {
+        // Hide loading indicator on error
+        document.getElementById('loading-indicator').style.display = 'none';
+        console.error('Error:', error);
+    });
+}
+</script>
+
+</body>
+</html>
