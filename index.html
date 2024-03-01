@@ -5,18 +5,105 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Text Detection and Reading</title>
     <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        #upload-form {
+            max-width: 400px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        #image-input {
+            width: 0;
+            height: 0;
+            opacity: 0;
+            overflow: hidden;
+            position: absolute;
+            z-index: -1;
+        }
+
+        #image-label {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        #image-preview {
+            max-width: 200px;
+            max-height: 200px;
+            margin: 10px auto;
+            display: none;
+        }
+
+        button {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
         #loading-indicator {
             display: none;
+            text-align: center;
+            margin-top: 20px;
+            color: #007bff;
+        }
+
+        #result-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        h3 {
+            color: #333;
+        }
+
+        #recognized-text {
+            margin-top: 10px;
+            color: #555;
         }
     </style>
 </head>
 <body>
 
-<h1>Text Detection and Reading</h1>
+<h1>Object Detection</h1>
 
 <form id="upload-form">
-    <label for="image-input">Upload an Image:</label>
-    <input type="file" id="image-input" name="image" accept="image/*">
+    <label id="image-label" for="image-input">Choose an Image</label>
+    <input type="file" id="image-input" name="image" accept="image/*" onchange="previewImage()">
+    <img id="image-preview" alt="Image Preview">
     <br>
     <button type="button" onclick="uploadImage()">Submit</button>
 </form>
@@ -29,6 +116,22 @@
 </div>
 
 <script>
+function previewImage() {
+    var fileInput = document.getElementById('image-input');
+    var imagePreview = document.getElementById('image-preview');
+
+    if (fileInput.files && fileInput.files[0]) {
+        var reader = new FileReader();
+
+        reader.onload = function(e) {
+            imagePreview.src = e.target.result;
+            imagePreview.style.display = 'block';
+        };
+
+        reader.readAsDataURL(fileInput.files[0]);
+    }
+}
+
 function uploadImage() {
     var formData = new FormData();
     var fileInput = document.getElementById('image-input');
@@ -37,7 +140,7 @@ function uploadImage() {
     // Show loading indicator
     document.getElementById('loading-indicator').style.display = 'block';
 
-    fetch('http://127.0.0.1:5000/detect_text', {
+    fetch('http://192.168.29.155:5000/detect_text', {
         method: 'POST',
         body: formData
     })
