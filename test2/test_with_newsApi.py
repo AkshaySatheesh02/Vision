@@ -117,16 +117,14 @@ def get_output_text():
 
 @app.route('/conversation', methods=['POST'])
 def conversation():
+    global chat
+    prompt = 'fail'
+    inital_conversation_prompt = 'you are a conversational AI for blind named VISION developed by Abhishek, Akshay, Ananya and Akhil. Limit your answers to one or two sentences. answer in paragraph only when asked to. only if the person says a greeting word for the first time you are supposed to introduce yourself as vision or just say the answer directly. if a question is asked answer to the question precisely instead of giving all details.'
 
-    #print(text)
-    global  chat
-    prompt='fail'
-    inital_conversation_prompt='you are a conversational AI for blind named VISION developed by Abhishek, Akshay, Ananya and Akhil. Limit your answers to one or two sentences. answer in paragraph only when asked to. only if the person says a greeting word for the first time you are supposed to introduce yourself as vision or just say the answer directly. if a question is asked answer to the question precisely instead of giving all details.'
     if request.method == 'POST':
-            #read_aloud("hello i am vision")
-            # Check if 'value' is present in the POST data
         current_time = datetime.datetime.now()
         p = inflect.engine()
+
         if current_time.hour == 0:
             hour_text = "twelve"
         elif current_time.hour <= 12:
@@ -139,64 +137,61 @@ def conversation():
         else:
             minute_text = p.number_to_words(current_time.minute)
 
-        # Determine whether it's AM or PM
         if current_time.hour < 12:
             period_text = "a.m."
         else:
             period_text = "p.m."
 
-        # Construct the time in text format
-        time_text = f"It's {hour_text}  {minute_text}  {period_text}."
+        time_text = f"It's {hour_text} {minute_text} {period_text}."
         date_text = f" {current_time.strftime('%A, %B %d, %Y')}."
 
         if 'value' in request.form:
             received_value = request.form['value']
             print("Received value:", received_value)
-            if(received_value=='1'):
-                    #read_aloud("Hello i am vision")
-                while(prompt=='fail'):
+            
+            if received_value == '1':
+                while prompt == 'fail':
                     audio = record_audio()
                     prompt = convert_audio_to_text(audio)
+                
                 try: 
-                    search_engine_id= '34788e2b1708d46ac'
-                    google_api='AIzaSyB7fIcTdoJxa6O6qOc5ZqClNN-_Dwyo33w'
-                    search_query= prompt
-                    url='https://www.googleapis.com/customsearch/v1'
+                    news_api_key = '3c2aac210ad2417597b576de682b25f8'
+                    search_query = prompt
+                    url = 'https://newsapi.org/v2/everything'
                     params = {
-                        'q': search_query+ 'todays date is: '+date_text,
-                        'key': google_api,
-                        'cx': search_engine_id,
+                        'q': search_query,
+                        'apiKey': news_api_key,
+                        'language':'en',
+                        
                     }
                     response = requests.get(url, params=params)
-                    results=response.json()
-                    search_res = ""  # Initialize an empty string to store concatenated snippets
+                    news_data = response.json()
 
-                    if 'items' in results:
-                        snippets = [item['snippet'] for item in results['items'][:10]]  # Take only the first 5 snippets
-                        for i, snippet in enumerate(snippets, start=1):  # Enumerate over snippets with index starting from 1
-                            search_res += f"{i}. {snippet}\n"  # Concatenate snippet with its corresponding index
-                    print("google search result is="+search_res)
-                    response = chat.send_message(inital_conversation_prompt+"This is the actual prompt given by the user=>"+prompt+". The google search result for the above prompt is as given below, if the above prompt is NOT a greeting then use the below information and please answer accordingly using this as reference, if the prompt is based on real time data please do not tell that you dont know instead answer based on the below search result, prioritize the most recent search result while answering  :"+search_res+"/n/n if asked about The current time tell its "+time_text+"/n/n if asked about the current date tell its"+date_text,stream=True)
-                except:
+                    search_res = ""
+                    if 'articles' in news_data:
+                        articles = news_data['articles'][:5]  # Take only the first 5 articles
+                        for i, article in enumerate(articles, start=1):
+                            search_res += f"{i}. {article['title']}: {article['description']}\n"
+                    
+                    print("News search result is:", search_res)
+                    response = chat.send_message(inital_conversation_prompt + prompt + ". The news search result for the above prompt is as given below. Please answer accordingly using this as reference if asked for real-time data:\n\n" + search_res + "\n\nIf asked about the current time, tell it's " + time_text + "\n\nIf asked about the current date, tell it's " + date_text, stream=True)
+                except Exception as e:
+                    print("Error:", e)
                     chat.rewind()
-                    response = chat.send_message(inital_conversation_prompt+prompt)
+                    response = chat.send_message(inital_conversation_prompt + prompt)
 
                 text = ''
-
                 for chunk in response:
                     text = text + chunk.text
                 read_aloud(text)
                 print(text)
-                prompt='fail'
+                prompt = 'fail'
                 
-                # Now you can do whatever you want with the received value
                 return "Received value: " + received_value
             else:
                 return "No value received"
 
-    
-
-    return("test")
+    return "test"
     
 
 

@@ -73,7 +73,7 @@ def read_aloud(text):
     filtered_text = filtered_text.replace('\n', ' ')
     engine = pyttsx3.init()
     voices = engine.getProperty('voices')
-    engine.setProperty('voice', voices[1].id)
+    engine.setProperty('voice', voices[0].id)
     engine.setProperty('rate', 150)
     # Wait for the existing speech to finish (if any)
     engine.runAndWait()
@@ -152,8 +152,9 @@ def conversation():
                                 {
                                     "role": "system",
                                     "content": (
-                                        "you are a conversational AI for blind named VISION developed by Abhishek, Akshay, Ananya and Akhil. "
+                                        "you are a conversational AI for blind named VISION developed by Abhishek, Akshay, Ananya and Akhil. you are made to help visually impaired individuals "
                                         " Limit your answers to one or two sentences. answer in paragraph only when asked to."
+                                        "if the prompt is a greeting then greet the user back with your name and detail"
                                         "only if the person says a greeting word for the first time you are supposed to introduce yourself as vision or just say the answer directly."
                                         " if a question is asked answer to the question precisely instead of giving all details."    
                                         "You are located in bangalore ,India . When asked date or time or any location specific questions answer based on this location, and in one or two words"
@@ -250,6 +251,8 @@ def upload_file():
                 text=filter_special_characters(text)
                 # You can choose to use the blurred image or original grayscale image for OCR
                 read_aloud(text)
+                if(len(text)==0):
+                    read_aloud('please capture the image from another angle')
 
                 return text
             except Exception as e:
